@@ -3,7 +3,7 @@
 
 # 编译
 
-    git clone https://github.com/xieyuhua/xgit.git
+    git clone https://github.com/xiebigbig/xgit.git
 
     cd xgit
 
