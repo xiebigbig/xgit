@@ -39,10 +39,11 @@ func Commit(dir string, version string) {
 	files := utils.Walk(dir)
 	p := pool.NewPool(10000)
 	for _, filepath := range files {
-		if strings.Index(filepath, ".xgit") != -1 {//跳过程序文件
+	    //忽略的文件或者目录
+		if strings.Index(filepath, ".xgit") != -1 || strings.Index(filepath, ".git") != -1 {//跳过程序文件
 			continue
 		}
-
+		// 
 		p.Add(1)
 		go func() {
 			md5 := utils.GetMd5(filepath)
@@ -295,6 +296,6 @@ func Checkout(versionNum string)  {
 
 		fmt.Println("正在恢复文件", key, "从", lastVersion.Version, "到", handleVersionName)
 		objectPath := path.Join(object.DataPathDir, "objects", handleObjectName)
-		object.FileToBin(objectPath, key)
+		object.BinToFile(objectPath, key)
 	}
 }

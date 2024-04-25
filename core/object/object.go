@@ -76,6 +76,10 @@ func SaveObject(diff map[string][]string, oh *ObjectHistory, isfirst bool) {
 
 	oh.WriteHistory()
 }
+//恢复数据
+func BinToFile(binPath string, filePath string) {
+	utils.ReCopyFile(binPath, filePath)
+}
 
 func FileToBin(filePath string, binPath string) {
 	utils.CopyFile(filePath, binPath)

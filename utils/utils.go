@@ -2,6 +2,8 @@ package utils
 
 import (
 	"bytes"
+// 	"compress/lzw"  
+	"github.com/pierrec/lz4/v4"  
 	"crypto/md5"
 	"encoding/binary"
 	"fmt"
@@ -11,6 +13,88 @@ import (
 	"strconv"
 	"time"
 )
+
+//还原数据
+func ReCopyFile(src, dst string) (int64, error) {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return 0, err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return 0, fmt.Errorf("%s is not a regular file", src)
+	}
+    //打开源文件  
+	source, err := os.Open(src)
+	if err != nil {
+		return 0, err
+	}
+	defer source.Close()
+    
+	// 创建一个 LZ4 读取器 
+	reader  := lz4.NewReader(source)  
+  
+    // 将压缩后的数据写入到目标文件  
+	destination, err := os.Create(dst)
+	if err != nil {
+		return 0, err
+	}
+	defer destination.Close()
+	
+    // 使用 io.Copy 将解压缩的数据写入到文件中  
+	nBytes, err := io.Copy(destination, reader)
+	return nBytes, err
+}
+
+//压缩数据  lz4
+func CopyFile(src, dst string) (int64, error) {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return 0, err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return 0, fmt.Errorf("%s is not a regular file", src)
+	}
+    //打开源文件  
+	source, err := os.Open(src)
+	if err != nil {
+		return 0, err
+	}
+	defer source.Close()
+    
+    
+	// 创建一个缓冲区来存储压缩后的数据  
+	var compressedData bytes.Buffer  
+	writer := lz4.NewWriter(&compressedData)  
+  
+	// 使用io.Copy来读取源文件并写入到LZ4 writer中  
+	_, err = io.Copy(writer, source)  
+	if err != nil {  
+		return 0, err
+	}  
+  
+	// 关闭writer以完成压缩并刷新缓冲区  
+	err = writer.Close()  
+	if err != nil {  
+		return 0, err
+	}
+
+    // 将压缩后的数据写入到目标文件  
+	destination, err := os.Create(dst)
+	if err != nil {
+		return 0, err
+	}
+	defer destination.Close()
+	
+    nBytes, err := compressedData.WriteTo(destination)  
+	if err != nil {  
+		return 0, err
+	}  
+	
+// 	nBytes, err := io.Copy(destination, source)
+	return nBytes, err
+}
 
 func IntToBytes(n int) []byte {
 	data := int64(n)
@@ -58,27 +142,3 @@ func GetWd() string {
 	return cpath
 }
 
-func CopyFile(src, dst string) (int64, error) {
-	sourceFileStat, err := os.Stat(src)
-	if err != nil {
-		return 0, err
-	}
-
-	if !sourceFileStat.Mode().IsRegular() {
-		return 0, fmt.Errorf("%s is not a regular file", src)
-	}
-
-	source, err := os.Open(src)
-	if err != nil {
-		return 0, err
-	}
-	defer source.Close()
-
-	destination, err := os.Create(dst)
-	if err != nil {
-		return 0, err
-	}
-	defer destination.Close()
-	nBytes, err := io.Copy(destination, source)
-	return nBytes, err
-}
